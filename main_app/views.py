@@ -4,7 +4,7 @@ import boto3
 import os
 from django.shortcuts import render, redirect
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
-# from .forms import FeedingForm
+from .forms import FeedingForm
 from .models import Bird, Feeding, Photo  # and import the Photo Model
 
 # Create your views here.
@@ -23,7 +23,8 @@ def birds_index(request):
 
 def birds_detail(request, bird_id):
   bird = Bird.objects.get(id=bird_id)
-  return render(request, 'birds/detail.html', { 'bird': bird })
+  feeding_form=FeedingForm
+  return render(request, 'birds/detail.html', { 'bird': bird , 'feeding_form':feeding_form})
 
 def add_photo(request, bird_id):
     # photo-file will be the "name" attribute on the <input type="file">
@@ -45,6 +46,16 @@ def add_photo(request, bird_id):
             print(e)
     return redirect('detail', bird_id=bird_id)
 
+def add_feeding(request, bird_id):
+   form = FeedingForm(request.POST)
+
+   if form.is_valid():
+    new_feeding = form.save(commit=False)
+    new_feeding.bird_id = bird_id
+    new_feeding.save()
+    return redirect('detail', bird_id=bird_id)
+
+
 class BirdCreate(CreateView):
   model = Bird
   fields = '__all__'
@@ -56,3 +67,4 @@ class BirdUpdate(UpdateView):
 class BirdDelete(DeleteView):
    model= Bird
    success_url = "/birds"
+
