@@ -23,7 +23,16 @@ def birds_index(request):
 def birds_detail(request, bird_id):
   bird = Bird.objects.get(id=bird_id)
   feeding_form=FeedingForm
-  return render(request, 'birds/detail.html', { 'bird': bird , 'feeding_form':feeding_form})
+  id_list = bird.toys.all().values_list('id')
+  # Query for the toys that the bird doesn't have
+  # by using the exclude() method vs. the filter() method
+  toys_bird_doesnt_have = Toy.objects.exclude(id__in=id_list)
+  # instantiate FeedingForm to be rendered in detail.html
+  feeding_form = FeedingForm()
+  return render(request, 'birds/detail.html', {
+    'bird': bird, 'feeding_form': feeding_form,
+    'toys': toys_bird_doesnt_have
+  })
 
 def add_photo(request, bird_id):
     # photo-file will be the "name" attribute on the <input type="file">
