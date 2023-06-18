@@ -79,11 +79,11 @@ def birds_detail(request, bird_id):
 
 class BirdCreate(CreateView):
   model = Bird
-  fields = '__all__'
+  fields = ['name', 'species', 'scientific_name', 'description', 'age']
 
 class BirdUpdate(UpdateView):
    model=Bird
-   fields='__all__'
+   fields = ['name', 'species', 'scientific_name', 'description', 'age']
 
 class BirdDelete(DeleteView):
    model= Bird
