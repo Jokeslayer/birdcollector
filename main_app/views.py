@@ -1,11 +1,10 @@
 # Add the 2 lines below
-import uuid
-import boto3
-import os
+import uuid, boto3, os
 from django.shortcuts import render, redirect
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, DetailView
+from .models import Bird, Toy, Feeding, Photo  # and import the Photo Model
 from .forms import FeedingForm
-from .models import Bird, Feeding, Photo  # and import the Photo Model
 
 # Create your views here.
 
@@ -55,6 +54,19 @@ def add_feeding(request, bird_id):
     new_feeding.save()
     return redirect('detail', bird_id=bird_id)
 
+def birds_detail(request, bird_id):
+  bird = Bird.objects.get(id=bird_id)
+  # Get the toys the bird doesn't have...
+  # First, create a list of the toy ids that the bird DOES have
+  id_list = bird.toys.all().values_list('id')
+  # Now we can query for toys whose ids are not in the list using exclude
+  toys_bird_doesnt_have = Toy.objects.exclude(id__in=id_list)
+  feeding_form = FeedingForm()
+  return render(request, 'birds/detail.html', {
+    'bird': bird, 'feeding_form': feeding_form,
+    # Add the toys to be displayed
+    'toys': toys_bird_doesnt_have
+  })
 
 class BirdCreate(CreateView):
   model = Bird
@@ -68,3 +80,28 @@ class BirdDelete(DeleteView):
    model= Bird
    success_url = "/birds"
 
+class ToyList(ListView):
+  model = Toy
+
+class ToyDetail(DetailView):
+  model = Toy
+
+class ToyCreate(CreateView):
+  model = Toy
+  fields = '__all__'
+
+class ToyUpdate(UpdateView):
+  model = Toy
+  fields = ['name', 'color']
+
+class ToyDelete(DeleteView):
+  model = Toy
+  success_url = '/toys'
+
+def assoc_toy(request, bird_id, toy_id):
+  Bird.objects.get(id=bird_id).toys.add(toy_id)
+  return redirect('detail', bird_id=bird_id)
+
+def unassoc_toy(request, bird_id, toy_id):
+  Bird.objects.get(id=bird_id).toys.remove(toy_id)
+  return redirect('detail', bird_id=bird_id)
